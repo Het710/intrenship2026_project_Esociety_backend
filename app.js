@@ -15,7 +15,7 @@ const alertRoutes=require('./src/routes/alertRoutes')
 const razorpayRoutes=require('./src/routes/razorpayRoutes')
 const discussionRoutes=require('./src/routes/discussionRoutes')
 const app = express()
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 5000
 
 app.use(express.json())
 app.use(cors())
