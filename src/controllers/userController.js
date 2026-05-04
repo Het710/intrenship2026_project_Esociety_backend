@@ -4,29 +4,42 @@ const sendMail = require('../utils/mailUtil')
 const jwt=require('jsonwebtoken')
 const MailMessage = require('nodemailer/lib/mailer/mail-message')
 const secret = process.env.JWT_SECRET
+
+if(!secret){
+        console.error("JWT_SECRET is missing")
+        process.exit(1)
+    }
 const registerUser = async(req,res)=>{
 try {
-    const hashPassword = await bcrypt.hash(req.body.password,10)
-    const savedUser= await userSchema.create({...req.body,password:hashPassword})
-     try {
-    await sendMail(
-    savedUser.email,
-    "Welcome to E-Society",
-    `Hello ${savedUser.firstName}, thank you for registering with our app!`
-);
+    const hashPassword = await bcrypt.hash(req.body.password, 10);
+
+    const savedUser = await userSchema.create({
+        ...req.body,
+        password: hashPassword
+    });
+
+    const { password, ...userData } = savedUser._doc;
+
+    try {
+        await sendMail(
+            savedUser.email,
+            "Welcome to E-Society",
+            `Hello ${savedUser.firstName}, thank you for registering with our app!`
+        );
     } catch (mailErr) {
-      console.log("Mail Error:", mailErr.message);
+        console.log("Mail Error:", mailErr.message);
     }
 
     res.status(201).json({
-        message:"User created successfully",
-        data:savedUser
-    })
+        message: "User created successfully",
+        data: userData
+    });
+
 } catch (err) {
     res.status(500).json({
-        message:"error while creating user",
-        error:err.message
-    })
+        message: "error while creating user",
+        error: err.message
+    });
 }
 
 } 
@@ -34,6 +47,12 @@ try {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    if(!email || !password){
+        return res.status(400).json({
+            message:"Email and Password require"
+        })
+    }
 
     const user = await userSchema.findOne({ email });
 
@@ -56,7 +75,7 @@ const loginUser = async (req, res) => {
         message: "Invalid password"
       });
     }
-
+  
     const token = jwt.sign(
       { id: user._id, role: user.role },
         secret,
@@ -74,7 +93,7 @@ const loginUser = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("LOGIN ERROR:", err); // 🔥 IMPORTANT
+    console.error("LOGIN ERROR:", err);
     return res.status(500).json({
       message: "Error while logging in",
       error: err.message
@@ -84,13 +103,13 @@ const loginUser = async (req, res) => {
 
 const getAllUsers=async(req,res)=>{
 try {
-    if(req.user.role !== 'Admin'){
+    if(!req.user || req.user.role !== 'Admin'){
         return res.status(403).json({
             message:"Only admin can view users"
         })
     }
 
-    const users = await userSchema.find().select(" -password")
+    const users = await userSchema.find().select("-password")
 
     return res.status(200).json({
         message:"Users fetched successfully",
@@ -123,7 +142,7 @@ const forgetPassword = async(req,res)=>{
         </html>`
           await sendMail(foundUserFromEmail.email,"Reset Password Link",mailText)
         res.status(200).json({
-            message:"rest link has been sent to your email"
+            message:"reset link has been sent to your email"
         })
         } else{
             res.status(404).json({
@@ -140,6 +159,7 @@ const forgetPassword = async(req,res)=>{
 }
 
 const resetPassword = async(req,res)=>{
+    let decodedUser;
     const {newPassword,token} = req.body
     try {
         if(!newPassword || !token){
@@ -152,9 +172,15 @@ const resetPassword = async(req,res)=>{
                 message:"Password must be at least 6 characters"
             })
         }
-        const decodedUser = jwt.verify(token,secret)
+       try {
+    decodedUser = jwt.verify(token, secret);
+} catch (err) {
+    return res.status(401).json({
+        message: "Token expired or invalid"
+    });
+}
         const hashPassword = await bcrypt.hash(newPassword,10)
-        const updateUser = await userSchema.findByIdAndUpdate(decodedUser.id,{password:hashPassword})
+        await userSchema.findByIdAndUpdate(decodedUser.id,{password:hashPassword})
         res.status(200).json({
             message:"Password reset successfully"
         })
