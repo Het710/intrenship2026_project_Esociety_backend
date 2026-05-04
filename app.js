@@ -20,8 +20,9 @@ const PORT = process.env.PORT || 5000
 app.use(express.json())
 app.use(cors({
   origin:[
-    "https://internship2026-project-esociety-fro.vercel.app",
-    "https://internship2026-project-esociety-fro.vercel.app/"
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://internship2026-project-esociety-fro.vercel.app"
   ],
   credentials:true
 }))
@@ -40,6 +41,12 @@ app.use('/api/discussions', discussionRoutes)
 
 
 DBConnection()
+.then(()=>{
 app.listen(PORT,"0.0.0.0",()=>{
     console.log(`App is listening on http://localhost:${PORT}`)
+})
+})
+.catch((err)=>{
+  console.log("DB Connection Failed ", err);
+    process.exit(1);
 })
