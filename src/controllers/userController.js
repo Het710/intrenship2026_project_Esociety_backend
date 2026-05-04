@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt')
 const sendMail = require('../utils/mailUtil')
 const jwt=require('jsonwebtoken')
 const MailMessage = require('nodemailer/lib/mailer/mail-message')
-const secret = 'secret'
+const secret = process.env.JWT_SECRET
 const registerUser = async(req,res)=>{
 try {
     const hashPassword = await bcrypt.hash(req.body.password,10)
@@ -31,41 +31,56 @@ try {
 
 } 
 
-const loginUser=async(req,res)=>{
-try {
-    const {email,password} = req.body
-    const foundUserFromEmail = await userSchema.findOne({email:email})
-    if(foundUserFromEmail){
-        const isPasswordMatched = await bcrypt.compare(password,foundUserFromEmail.password)
-        if(isPasswordMatched){
-         const token = jwt.sign({id:foundUserFromEmail._id,role:foundUserFromEmail.role},secret,{expiresIn:"7d"})
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-         res.status(200).json({
-            message:"Login Success",
-            token,
-            user:{
-                _id:foundUserFromEmail._id,
-                role:foundUserFromEmail.role,
-                firstName:foundUserFromEmail.firstName
-            }
-         })
-        } else{
-            res.status(401).json({
-                message:"Invalid password"
-            })
-        }
-    } else{
-        res.status(404).json({
-            message:"User not found"
-        })
+    const user = await userSchema.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
     }
-} catch (err) {
+
+    if (!user.password) {
+      return res.status(500).json({
+        message: "User password not set properly"
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Invalid password"
+      });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+        secret,
+      { expiresIn: "7d" }
+    );
+
+    return res.status(200).json({
+      message: "Login Success",
+      token,
+      user: {
+        _id: user._id,
+        role: user.role,
+        firstName: user.firstName
+      }
+    });
+
+  } catch (err) {
+    console.error("LOGIN ERROR:", err); // 🔥 IMPORTANT
     return res.status(500).json({
-        message:"Error while logging in",
-        err:err.message
-    })
-}
-} 
+      message: "Error while logging in",
+      error: err.message
+    });
+  }
+};
 
 const getAllUsers=async(req,res)=>{
 try {
@@ -101,7 +116,7 @@ const forgetPassword = async(req,res)=>{
         const foundUserFromEmail = await userSchema.findOne({email})
         if(foundUserFromEmail){
             const token = jwt.sign({id:foundUserFromEmail._id},secret,{expiresIn:'7d'})
-            const url=`http://localhost:5173/reset-password/${token}`
+            const url = `https://internship2026-project-esociety-fro.vercel.app/reset-password/${token}`
               const mailText = `<html>
               <p>Click below to rest password</p>
             <a href ='${url}'>RESET PASSWORD</a>
