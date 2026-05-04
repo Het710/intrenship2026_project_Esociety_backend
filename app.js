@@ -18,7 +18,10 @@ const app = express()
 const PORT = process.env.PORT || 5000
 
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+  origin: "https://internship2026-project-esociety-fro.vercel.app",
+  credentials: true
+}));
 // routes for all the controller
 app.use('/api/user',userRoutes)
 app.use('/api/residents',residentRoutes)
