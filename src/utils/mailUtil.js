@@ -1,9 +1,10 @@
 require('dns').setDefaultResultOrder('ipv4first');
 const mailer = require('nodemailer');
+const net = require('net');
 
 const sendMail = async (to, subject, visitorData) => {
     try {
- const transporter = mailer.createTransport({
+        const transporter = mailer.createTransport({
             service: 'gmail',
             host: 'smtp.gmail.com',
             port: 587,
@@ -12,14 +13,12 @@ const sendMail = async (to, subject, visitorData) => {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
             },
+            connectionTimeout: 10000,
+            socketTimeout: 10000,
             tls: {
                 rejectUnauthorized: false,
-                minVersion: "TLSv1.2"
-            },
-            connectionTimeout: 10000, 
-            greetingTimeout: 10000,
-            socketTimeout: 10000,
-            family: 4 
+                servername: 'smtp.gmail.com'
+            }
         });
 
         const isVisitor = visitorData && typeof visitorData === 'object';
@@ -41,7 +40,7 @@ const sendMail = async (to, subject, visitorData) => {
                    </div>`
         };
 
-        return transporter.sendMail(mailOptions);
+        return await transporter.sendMail(mailOptions);
     } catch (error) {
         console.error("Nodemailer Internal Error:", error.message);
     }
