@@ -11,9 +11,9 @@ if(!secret){
     }
 const registerUser = async (req, res) => {
   try {
-    const { firstName, email, password, role } = req.body;
+    const { firstName, lastName, email, password, role } = req.body;
 
-    if (!firstName || !email || !password) {
+    if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({
         message: "All required fields must be provided"
       });
@@ -31,6 +31,7 @@ const registerUser = async (req, res) => {
 
     const savedUser = await userSchema.create({
       firstName,
+      lastName,
       email,
       password: hashPassword,
       role
@@ -54,7 +55,7 @@ const registerUser = async (req, res) => {
     });
 
   } catch (err) {
-    console.log("REGISTER ERROR:", err); // 👈 ADD THIS
+    console.log("REGISTER ERROR:", err);
     res.status(500).json({
       message: "error while creating user",
       error: err.message
