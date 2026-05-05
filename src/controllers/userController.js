@@ -2,7 +2,6 @@ const userSchema = require('../models/userModel')
 const bcrypt = require('bcrypt')
 const sendMail = require('../utils/mailUtil')
 const jwt=require('jsonwebtoken')
-const MailMessage = require('nodemailer/lib/mailer/mail-message')
 const secret = process.env.JWT_SECRET
 
 if(!secret){
@@ -40,7 +39,7 @@ const registerUser = async (req, res) => {
     const { password: _, ...userData } = savedUser._doc;
 
     try {
-      await sendMail(
+      sendMail(
         savedUser.email,
         "Welcome to E-Society",
         `Hello ${savedUser.firstName}, thank you for registering!`

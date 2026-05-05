@@ -1,4 +1,5 @@
 const mailer = require('nodemailer')
+require('dns').setDefaultResultOrder('ipv4first')
 const sendMail = async (to, subject, visitorData) => {
     try {
         const transporter = mailer.createTransport({
