@@ -1,27 +1,27 @@
-const mailer = require('nodemailer')
-require('dns').setDefaultResultOrder('ipv4first')
+require('dns').setDefaultResultOrder('ipv4first');
+const mailer = require('nodemailer');
+
 const sendMail = async (to, subject, visitorData) => {
     try {
         const transporter = mailer.createTransport({
-            host:'smtp.gmail.com',
-            port:465,
-            secure:true,
+            host: 'smtp.gmail.com',
+            port: 465, 
+            secure: true,
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
             },
-            connectionTimeout:5000
+            connectionTimeout: 5000,
+            greetingTimeout: 5000,
+            socketTimeout: 5000
         });
 
         const isVisitor = visitorData && typeof visitorData === 'object';
-
         const mailOptions = {
             from: `"E-Society" <${process.env.EMAIL_USER}>`,
             to: to,
             subject: subject,
-            text: isVisitor 
-                ? `Visitor Alert: ${visitorData.name}` 
-                : visitorData, 
+            text: isVisitor ? `Visitor Alert: ${visitorData.name}` : visitorData,
             html: isVisitor ? `
                 <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee;">
                     <h2 style="color: #3b82f6;">New Visitor Notification</h2>
@@ -35,11 +35,10 @@ const sendMail = async (to, subject, visitorData) => {
                    </div>`
         };
 
-        return await transporter.sendMail(mailOptions);
+        return transporter.sendMail(mailOptions);
     } catch (error) {
-        console.error("Nodemailer Error:", error.message);
-        throw error; 
+        console.error("Nodemailer Internal Error:", error.message);
     }
 }
 
-module.exports = sendMail
+module.exports = sendMail;

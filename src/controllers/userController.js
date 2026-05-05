@@ -23,13 +23,15 @@ const registerUser = async (req, res) => {
       data: userData
     });
 
-    sendMail(
-      savedUser.email,
-      "Welcome to E-Society",
-      `Hello ${savedUser.firstName}, thank you for registering!`
-    ).catch((mailErr) => {
-      console.error("Background Email Error (Ignored):", mailErr.message);
-    });
+    setTimeout(() => {
+        sendMail(
+          savedUser.email,
+          "Welcome to E-Society",
+          `Hello ${savedUser.firstName}, thank you for registering!`
+        ).catch((mailErr) => {
+          console.error("Background Email Failed:", mailErr.message);
+        });
+    }, 0);
 
   } catch (err) {
     console.error("REGISTER ERROR:", err);
