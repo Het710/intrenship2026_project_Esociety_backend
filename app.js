@@ -21,7 +21,6 @@ app.use(express.json())
 app.use(cors({
   origin:[
     "http://localhost:5173",
-    "http://localhost:3000",
     "https://internship2026-project-esociety-fro.vercel.app"
   ],
   credentials:true
