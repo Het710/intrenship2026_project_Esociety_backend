@@ -11,49 +11,31 @@ const registerUser = async (req, res) => {
   try {
     const { firstName, lastName, email, password, role } = req.body;
 
-    if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({
-        message: "All required fields must be provided"
-      });
-    }
-
-    const existingUser = await userSchema.findOne({ email });
-
-    if (existingUser) {
-      return res.status(400).json({
-        message: "User already exists"
-      });
-    }
-
     const hashPassword = await bcrypt.hash(password, 10);
-
     const savedUser = await userSchema.create({
-      firstName,
-      lastName,
-      email,
-      password: hashPassword,
-      role
+      firstName, lastName, email, password: hashPassword, role
     });
 
     const { password: _, ...userData } = savedUser._doc;
-
-try {
-  await sendMail(savedUser.email, "Welcome to E-Society", `Hello ${savedUser.firstName}, thank you for registering!`);
-} catch (mailErr) {
-  console.error("Mail Error:", mailErr.message);
-}
 
     res.status(201).json({
       message: "User created successfully",
       data: userData
     });
 
-  } catch (err) {
-    console.log("REGISTER ERROR:", err);
-    res.status(500).json({
-      message: "error while creating user",
-      error: err.message
+    sendMail(
+      savedUser.email,
+      "Welcome to E-Society",
+      `Hello ${savedUser.firstName}, thank you for registering!`
+    ).catch((mailErr) => {
+      console.error("Background Email Error (Ignored):", mailErr.message);
     });
+
+  } catch (err) {
+    console.error("REGISTER ERROR:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ message: "Server error", error: err.message });
+    }
   }
 };
 
