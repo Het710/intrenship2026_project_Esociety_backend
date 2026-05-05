@@ -3,17 +3,20 @@ const mailer = require('nodemailer');
 
 const sendMail = async (to, subject, visitorData) => {
     try {
-        const transporter = mailer.createTransport({
+  const transporter = mailer.createTransport({
             host: 'smtp.gmail.com',
-            port: 465, 
-            secure: true,
+            port: 587, 
+            secure: false, 
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
             },
-            connectionTimeout: 5000,
-            greetingTimeout: 5000,
-            socketTimeout: 5000
+            tls: {
+                rejectUnauthorized: false,
+                minVersion: "TLSv1.2"
+            },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000
         });
 
         const isVisitor = visitorData && typeof visitorData === 'object';
