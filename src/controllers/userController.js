@@ -38,15 +38,15 @@ const registerUser = async (req, res) => {
 
     const { password: _, ...userData } = savedUser._doc;
 
-    try {
-      sendMail(
-        savedUser.email,
-        "Welcome to E-Society",
-        `Hello ${savedUser.firstName}, thank you for registering!`
-      );
-    } catch (mailErr) {
-      console.log("Mail Error:", mailErr.message);
-    }
+    // try {
+    //   sendMail(
+    //     savedUser.email,
+    //     "Welcome to E-Society",
+    //     `Hello ${savedUser.firstName}, thank you for registering!`
+    //   );
+    // } catch (mailErr) {
+    //   console.log("Mail Error:", mailErr.message);
+    // }
 
     res.status(201).json({
       message: "User created successfully",
