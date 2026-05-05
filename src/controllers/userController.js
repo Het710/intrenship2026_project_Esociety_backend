@@ -6,7 +6,6 @@ const secret = process.env.JWT_SECRET
 
 if(!secret){
         console.error("JWT_SECRET is missing")
-        process.exit(1)
     }
 const registerUser = async (req, res) => {
   try {
@@ -38,15 +37,11 @@ const registerUser = async (req, res) => {
 
     const { password: _, ...userData } = savedUser._doc;
 
-    // try {
-    //   sendMail(
-    //     savedUser.email,
-    //     "Welcome to E-Society",
-    //     `Hello ${savedUser.firstName}, thank you for registering!`
-    //   );
-    // } catch (mailErr) {
-    //   console.log("Mail Error:", mailErr.message);
-    // }
+try {
+  await sendMail(savedUser.email, "Welcome to E-Society", `Hello ${savedUser.firstName}, thank you for registering!`);
+} catch (mailErr) {
+  console.error("Mail Error:", mailErr.message);
+}
 
     res.status(201).json({
       message: "User created successfully",
