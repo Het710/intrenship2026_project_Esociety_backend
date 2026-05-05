@@ -38,7 +38,7 @@ const registerUser = async (req, res) => {
     const { password: _, ...userData } = savedUser._doc;
 
 try {
-  sendMail(savedUser.email, "Welcome to E-Society", `Hello ${savedUser.firstName}, thank you for registering!`);
+  await sendMail(savedUser.email, "Welcome to E-Society", `Hello ${savedUser.firstName}, thank you for registering!`);
 } catch (mailErr) {
   console.error("Mail Error:", mailErr.message);
 }
