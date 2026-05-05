@@ -9,40 +9,58 @@ if(!secret){
         console.error("JWT_SECRET is missing")
         process.exit(1)
     }
-const registerUser = async(req,res)=>{
-try {
-    const hashPassword = await bcrypt.hash(req.body.password, 10);
+const registerUser = async (req, res) => {
+  try {
+    const { firstName, email, password, role } = req.body;
+
+    if (!firstName || !email || !password) {
+      return res.status(400).json({
+        message: "All required fields must be provided"
+      });
+    }
+
+    const existingUser = await userSchema.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "User already exists"
+      });
+    }
+
+    const hashPassword = await bcrypt.hash(password, 10);
 
     const savedUser = await userSchema.create({
-        ...req.body,
-        password: hashPassword
+      firstName,
+      email,
+      password: hashPassword,
+      role
     });
 
-    const { password, ...userData } = savedUser._doc;
+    const { password: _, ...userData } = savedUser._doc;
 
     try {
-        await sendMail(
-            savedUser.email,
-            "Welcome to E-Society",
-            `Hello ${savedUser.firstName}, thank you for registering with our app!`
-        );
+      await sendMail(
+        savedUser.email,
+        "Welcome to E-Society",
+        `Hello ${savedUser.firstName}, thank you for registering!`
+      );
     } catch (mailErr) {
-        console.log("Mail Error:", mailErr.message);
+      console.log("Mail Error:", mailErr.message);
     }
 
     res.status(201).json({
-        message: "User created successfully",
-        data: userData
+      message: "User created successfully",
+      data: userData
     });
 
-} catch (err) {
+  } catch (err) {
+    console.log("REGISTER ERROR:", err); // 👈 ADD THIS
     res.status(500).json({
-        message: "error while creating user",
-        error: err.message
+      message: "error while creating user",
+      error: err.message
     });
-}
-
-} 
+  }
+};
 
 const loginUser = async (req, res) => {
   try {
